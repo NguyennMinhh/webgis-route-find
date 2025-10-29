@@ -1,6 +1,13 @@
 from django.http import HttpResponse
 from django.shortcuts import render
+from .models import User, Location, RouteHistory
+from maps.serializers import UserSerializer
+from rest_framework import generics
 
-# Create your views here.
 def index(request):
-    return HttpResponse('Hello')
+    return HttpResponse()
+
+class UserListApiView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    

@@ -20,10 +20,14 @@ class User(AbstractUser):
         blank=True
     )
     latitude = models.FloatField(
-        validators=[check_legit_latitude]
+        validators=[check_legit_latitude],
+        null=True,
+        blank=True
     )
     longitude = models.FloatField(
-        validators=[check_legit_longitude]
+        validators=[check_legit_longitude],
+        null=True,
+        blank=True
     )
 
     def __str__(self):
@@ -50,14 +54,14 @@ class Location(models.Model):
         return self.name
     
 class RouteHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_route_history')
     # Lưu toạ độ tại thời điểm tra route
     user_origin_latitude = models.FloatField(null=True, blank=True)
     user_origin_longitude = models.FloatField(null=True, blank=True)
     # Thêm origin nếu route giữa 2 địa điểm trong DB
-    origin = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True)
+    origin = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name='origin_route_history')
     # Địa điểm cuối cần đến:
-    destination = models.ForeignKey(Location, on_delete=models.CASCADE)
+    destination = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='destination_route_history')
     distance_km = models.FloatField()
     duration_min = models.FloatField()
     geometry = models.JSONField()
