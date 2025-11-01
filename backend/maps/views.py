@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-from .models import User, Location, RouteHistory
+from .models import User, BusRoute, BusStation
 from maps.serializers import UserSerializer
 from rest_framework import generics
 

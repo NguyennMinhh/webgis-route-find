@@ -18,7 +18,6 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 function App() {
   const [users, setUsers] = useState([]);
-  const [userLocations, setUserLocations] = useState([]);
 
   // Lấy dữ liệu từ Django
   useEffect(() => {
@@ -28,9 +27,6 @@ function App() {
       })
       .then((res) => {
         setUsers(res.data);
-        const latitude = res.data[0].latitude;
-        const longitude = res.data[0].longitude;
-        setUserLocations({ latitude, longitude });
       })
       .catch((err) => console.error("Error fetching user maps:", err));
   }, []);
@@ -38,7 +34,23 @@ function App() {
   // Tạo bản đồ sau khi có dữ liệu
   useEffect(() => {
     if (users.length > 0) {
-      const map = L.map("map").setView([userLocations.latitude, userLocations.longitude], 13);
+      // Parse geom WKT -> [lat, lng]
+      const parseGeom = (geomString) => {
+        if (!geomString) return null;
+        // Ví dụ: "SRID=4326;POINT (105.7852346918494 21.036478900729353)"
+        const match = geomString.match(/POINT\s*\(([-\d.]+)\s+([-\d.]+)\)/);
+        if (match) {
+          const lng = parseFloat(match[1]);
+          const lat = parseFloat(match[2]);
+          return [lat, lng];
+        }
+        return null;
+      };
+
+      const firstCoords = parseGeom(users[0].geom);
+      if (!firstCoords) return;
+
+      const map = L.map("map").setView(firstCoords, 14);
 
       // Layer nền OSM
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -47,14 +59,15 @@ function App() {
 
       // Marker cho từng user
       users.forEach((u) => {
-        if (u.latitude && u.longitude) {
-          L.marker([u.latitude, u.longitude])
+        const coords = parseGeom(u.geom);
+        if (coords) {
+          L.marker(coords)
             .addTo(map)
             .bindPopup(`<b>${u.username}</b><br>Age: ${u.age}`);
         }
       });
 
-      // Cleanup map khi component unmount (tránh lỗi render lại)
+      // Cleanup map khi component unmount
       return () => map.remove();
     }
   }, [users]);

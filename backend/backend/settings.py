@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_extensions',
     'corsheaders',
+    'django.contrib.gis',
     'maps',
 ]
 
@@ -80,8 +82,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'bus_database',
+        'USER': 'postgres',
+        'PASSWORD': 'minh8762382004',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -129,4 +135,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'maps.User'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+import os
+
+# Thêm GDAL vào
+GDAL_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.2\bin\gdal311.dll"
+GEOS_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.2\bin\geos_c.dll"
 

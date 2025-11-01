@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Location, RouteHistory
+from .models import User, BusStation, BusRoute
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,6 +8,5 @@ class UserSerializer(serializers.ModelSerializer):
             'id',
             'username',
             'age',
-            'latitude',
-            'longitude'
+            'geom'
         )

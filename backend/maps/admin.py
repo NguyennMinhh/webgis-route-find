@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import User, Location, RouteHistory
+from .models import User, BusStation, BusRoute
 
 # Register your models here.
 admin.site.register(User)
-admin.site.register(Location)
-admin.site.register(RouteHistory)
+admin.site.register(BusStation)
+admin.site.register(BusRoute)
