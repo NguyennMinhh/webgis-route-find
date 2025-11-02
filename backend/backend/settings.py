@@ -136,9 +136,18 @@ AUTH_USER_MODEL = 'maps.User'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+# import os
+
+# # Thêm GDAL vào
+# GDAL_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.2\bin\gdal311.dll"
+# GEOS_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.2\bin\geos_c.dll"
+
 import os
 
+os.environ['PROJ_LIB'] = r"C:\Program Files\QGIS 3.44.2\share\proj"
+os.environ['GDAL_DATA'] = r"C:\Program Files\QGIS 3.44.2\share\gdal"
 # Thêm GDAL vào
 GDAL_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.2\bin\gdal311.dll"
 GEOS_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.2\bin\geos_c.dll"
+
 
