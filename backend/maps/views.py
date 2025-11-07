@@ -17,6 +17,20 @@ class MapView(APIView):
             'bus_stations': BusStation.objects.all(),
             'users': User.objects.all()
         }
+
+        # Hiển thị trạm duy nhất (28, 36)
+        # route_code = 36
+        # related_bus_routes = BusRoute.objects.filter(route_code=route_code).all()
+        # related_bus_stations = BusStation.objects.filter(
+        #     station_routes__route__route_code=route_code
+        # ).distinct()
+        # data = {
+        #     'bus_routes': related_bus_routes,
+        #     'bus_stations': related_bus_stations,
+        #     'users': User.objects.all()
+        # }
+
+
         serializer = MapSerializer(data)
         return Response(serializer.data)
     
