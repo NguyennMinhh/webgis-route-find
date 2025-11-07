@@ -84,8 +84,8 @@ function App() {
       const lineCoords = parseLine(rt.geom);
       if (lineCoords.length > 0) {
         L.polyline(lineCoords, {
-          color: rt.direction === "go" ? "blue" : "red",
-          weight: 4,
+          color: rt.direction === "go" ? "#1E90FF" : "#FF4500",
+          weight: 8,
           opacity: 0.8,
         })
           .addTo(map)
