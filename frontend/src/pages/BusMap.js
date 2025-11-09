@@ -54,7 +54,7 @@ export default function BusMap() {
 
     const center = stations.length > 0 ? parsePoint(stations[0].geom) : [21.03, 105.82];
     const newMap = L.map("map").setView(center, 13);
-    setMap(newMap); // ⚡ lưu lại map instance
+    setMap(newMap);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a>',
