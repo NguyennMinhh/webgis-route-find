@@ -5,7 +5,9 @@ import "leaflet/dist/leaflet.css";
 
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
-import UserLocation from "../components/UserLocation";
+
+{/* Đang lỗi UserLocation */}
+// import UserLocation from "../components/UserLocation";
 
 const DefaultIcon = L.icon({
   iconUrl,
@@ -18,8 +20,10 @@ L.Marker.prototype.options.icon = DefaultIcon;
 export default function BusMap() {
   const [stations, setStations] = useState([]);
   const [routes, setRoutes] = useState([]);
-  const [map, setMap] = useState(null); // ⚡ giữ instance map
+  const [map, setMap] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
 
+  // --- Load data ---
   useEffect(() => {
     const load = async () => {
       try {
@@ -49,23 +53,24 @@ export default function BusMap() {
       .map(([lng, lat]) => [lat, lng]);
   };
 
+  // --- Create map + layers ---
   useEffect(() => {
     if (!stations.length && !routes.length) return;
 
     const center = stations.length > 0 ? parsePoint(stations[0].geom) : [21.03, 105.82];
     const newMap = L.map("map").setView(center, 13);
-    setMap(newMap);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a>',
     }).addTo(newMap);
 
+    newMap.whenReady(() => setMapReady(true)); // 🔥 đảm bảo map sẵn sàng
+    setMap(newMap);
+
     stations.forEach((st) => {
       const coords = parsePoint(st.geom);
       if (coords)
-        L.marker(coords)
-          .addTo(newMap)
-          .bindPopup(`${st.name} (${st.code})`);
+        L.marker(coords).addTo(newMap).bindPopup(`${st.name} (${st.code})`);
     });
 
     routes.forEach((rt) => {
@@ -80,12 +85,14 @@ export default function BusMap() {
           .bindPopup(`${rt.name} (${rt.route_code})`);
     });
 
-    return () => newMap.remove();
+    return () => {
+      if (newMap) newMap.remove();
+    };
   }, [stations, routes]);
 
   return (
     <div>
-      <h2>🚌 Bản đồ tuyến xe buýt</h2>
+      <h2>Bản đồ tuyến xe buýt</h2>
       <div
         id="map"
         style={{
@@ -96,10 +103,11 @@ export default function BusMap() {
         }}
       ></div>
 
-      {/* ✅ Đặt ở đây mới đúng */}
-      {map && map._loaded && <UserLocation map={map} />}
+      {/* Chỉ render UserLocation sau khi map thực sự sẵn sàng */}
+      {/* Đang lỗi UserLocation */}
+      {/* {mapReady && map && <UserLocation map={map} />} */}
 
-      <h3>📍 Danh sách trạm</h3>
+      <h3>Danh sách trạm</h3>
       {stations.length ? (
         <ul>
           {stations.map((s) => (
@@ -112,7 +120,7 @@ export default function BusMap() {
         <p>Đang tải trạm...</p>
       )}
 
-      <h3>🛣️ Danh sách tuyến</h3>
+      <h3>Danh sách tuyến</h3>
       {routes.length ? (
         <ul>
           {routes.map((r) => (

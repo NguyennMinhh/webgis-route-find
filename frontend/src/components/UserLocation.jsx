@@ -1,50 +1,49 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import L from "leaflet";
 
 export default function UserLocation({ map }) {
+  const [marker, setMarker] = useState(null);
+
   useEffect(() => {
-    if (!map) return; // Chờ map load xong (Leaflet instance truyền từ cha)
+    if (!map || !map.getContainer()) return; // map chưa tồn tại
 
-    let marker = null;
-    let circle = null;
+    // Hàm cập nhật vị trí người dùng
+    const updateUserPosition = (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const latlng = [latitude, longitude];
 
-    // Hàm cập nhật vị trí
-    const updatePosition = (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      const accuracy = position.coords.accuracy;
-
-      console.log(`📍 Your position: ${lat}, ${lng} (±${accuracy}m)`);
-
+      // Nếu chưa có marker thì tạo mới
       if (!marker) {
-        // Lần đầu tiên tạo marker và circle
-        marker = L.marker([lat, lng]).addTo(map).bindPopup("📍 Bạn đang ở đây");
-        circle = L.circle([lat, lng], { radius: accuracy, color: "#136aec", fillOpacity: 0.2 }).addTo(map);
-        map.setView([lat, lng], 15);
+        const newMarker = L.marker(latlng)
+          .addTo(map)
+          .bindPopup("Vị trí hiện tại của bạn");
+        setMarker(newMarker);
+        map.setView(latlng, 15);
       } else {
-        // Cập nhật liên tục
-        marker.setLatLng([lat, lng]);
-        circle.setLatLng([lat, lng]);
-        circle.setRadius(accuracy);
+        // Nếu có rồi, chỉ cập nhật vị trí
+        marker.setLatLng(latlng);
       }
     };
 
-    // Hàm lỗi
-    const onError = (err) => {
-      console.error("❌ Không thể lấy vị trí:", err.message);
-      alert("Không thể truy cập vị trí của bạn. Hãy bật quyền định vị (location).");
+    const errorHandler = (err) => {
+      console.warn("Không thể lấy vị trí:", err);
     };
 
-    // Theo dõi vị trí theo thời gian thực
-    const watchId = navigator.geolocation.watchPosition(updatePosition, onError, {
+    // Lấy vị trí người dùng
+    const watcher = navigator.geolocation.watchPosition(updateUserPosition, errorHandler, {
       enableHighAccuracy: true,
-      maximumAge: 10000,
-      timeout: 5000,
+      maximumAge: 5000,
+      timeout: 10000,
     });
 
-    // Cleanup khi component unmount
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [map]);
+    // Dọn dẹp khi unmount
+    return () => {
+      navigator.geolocation.clearWatch(watcher);
+      if (map && map.getContainer() && marker && map.hasLayer(marker)) {
+        map.removeLayer(marker); // xóa marker nếu còn tồn tại
+      }
+    };
+  }, [map, marker]);
 
-  return null; // Không render UI
+  return null;
 }
