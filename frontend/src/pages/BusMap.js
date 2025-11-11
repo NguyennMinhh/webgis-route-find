@@ -21,10 +21,10 @@ L.Marker.prototype.options.icon = DefaultIcon;
 export default function BusMap() {
   const [data, setData] = useState(null);
   const [map, setMap] = useState(null)
-  const [userLocation, setUserLocation] = useState(null);
-
+  
   const [destinationMode, setDestinationMode] = useState(false)
   const [destination, setDestination] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
   
   // Lấy dữ liệu API
   useEffect(() => {
@@ -93,7 +93,7 @@ const addUserLocation = () => {
   navigator.geolocation.getCurrentPosition(
     (position) => {
       const { latitude, longitude } = position.coords;
-      setUserLocation(position)
+      setUserLocation({ latitude, longitude})
       L.marker([latitude, longitude], { icon: userIcon })
         .addTo(map)
         .bindPopup("<b>Bạn đang ở đây!</b>")
@@ -114,9 +114,9 @@ const addUserLocation = () => {
 };
 
   // // Thông tin vị trí hiện tại của User
-  // useEffect(() => {
-  //   console.log("User Location: ", userLocation)
-  // }, [userLocation])
+  useEffect(() => {
+    console.log("User Location: ", userLocation)
+  }, [userLocation])
 
 
   // Lấy vị trí điểm muốn đến

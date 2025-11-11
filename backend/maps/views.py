@@ -21,6 +21,9 @@ class MapView(APIView):
         }
         serializer = MapSerializer(data)
         return Response(serializer.data)
+    
+    # def post(self, request):
+        
 
 
 class RouteDetailView(APIView):
