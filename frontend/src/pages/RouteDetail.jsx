@@ -8,6 +8,8 @@ import "leaflet-polylinedecorator";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
+import { parsePoint, parseLine } from "../utils/geomParser";
+
 const DefaultIcon = L.icon({
   iconUrl,
   shadowUrl: iconShadow,
@@ -32,22 +34,6 @@ export default function RouteDetail() {
     };
     load();
   }, [route_code]);
-
-  const parsePoint = (geom) => {
-    const match = geom?.match(/POINT\s*\(([-\d.]+)\s+([-\d.]+)\)/);
-    if (!match) return null;
-    const [lng, lat] = [parseFloat(match[1]), parseFloat(match[2])];
-    return [lat, lng];
-  };
-
-  const parseLine = (geom) => {
-    const match = geom?.match(/LINESTRING\s*\((.+)\)/);
-    if (!match) return [];
-    return match[1]
-      .split(",")
-      .map((p) => p.trim().split(" ").map(Number))
-      .map(([lng, lat]) => [lat, lng]);
-  };
 
   useEffect(() => {
     if (!data) return;
