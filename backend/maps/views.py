@@ -30,7 +30,7 @@ class MapView(APIView):
         end_long = float(request.data.get("end_long"))
 
         # (W.I.P): Dùng buffer để tìm các trạm phù hợp: (1 km = 0.009)
-        meter_radius = 1000
+        meter_radius = 20000
         radius = meter_radius / 111000   # vì là hệ toạ độ 4326 nên cần đổi 500m sang 0.0045 độ - 20km
 
         user_location = Point(start_long, start_lat, srid=4326)
@@ -73,20 +73,17 @@ class MapView(APIView):
         print(f"----- 4, dest_route_codes: {dest_route_codes}")
         print(f"----- 5, qualified_route_codes: {qualified_route_codes}")
         # -End (WIP)
+        
+        # # Ý tưởng
         # Nếu trong khoảng cách duration, nếu có 2 trạm nào có bus_route trùng mã route_code thì đi trạm đó có thể đi được
         # Nếu có nhiều trạm có thể đi được trong các route đó thì tìm trạm gần nhất bằng cách tìm khoảng cách cò bay với các trạm trong từng route, trạm nào được chọn thì dùng OSRM API để tạo tuyến đường đi
         # Hiển thị tuyến đường đi đó cùng các bus_route có order từ trạm bus_station start đến trạm bus_station end
 
-        # data = {
-        #     "message": "Dữ liệu đã nhận.",
-        #     "start": {"lat": start_lat, "long": start_long},
-        #     "end": {"lat": end_lat, "long": end_long},
-        #     # "stations_near_user": stations_near_user,
-        #     # "stations_near_destination": stations_near_destination,
-        # }
-        # print(f"----- 6, Data: ${data}")
-        # return Response(data)
-
+        # Sau khi tìm đc 2 trạm để đi và xuống
+        # Từ 2 bảng bus_station đó tìm ra 2 bảng RouteBus tương ứng, qua đó lấy được order, vd: order: 1 và order: 5, sau đó lấy các route có order từ 1 => 5 sẽ là tuyến route xe buýt mà người đi xe buýt đi qua
+        # Tiếp đó 
+        # #
+ 
         return Response({
             "message": "Dữ liệu đã nhận.",
             "buffer_meter": round(radius * 111_000, 2),  # đổi độ sang mét, 1 độ = 111.000m
