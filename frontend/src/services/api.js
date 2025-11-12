@@ -44,6 +44,8 @@ export const sendLocationDataToBackend = async (
     end_long: endLng,
   }
 
+  console.log("Posted data: ", data)
+
   const res = await axios.post(`${API_BASE}/maps/`, data, {
     headers: { "Content-Type": "application/json" },
   });
