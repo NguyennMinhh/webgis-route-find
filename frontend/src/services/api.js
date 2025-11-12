@@ -27,7 +27,7 @@ export const sendLocationDataToBackend = async (
   endLng, 
   // APIurl = "/"
 ) => {
-  if (!startLat || !startLng || endLat || endLng) {
+  if (!startLat || !startLng || !endLat || !endLng) {
     alert("Thiếu dữ liệu vị trí user hoặc destination");
     return;
   }

@@ -2,7 +2,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-polylinedecorator";
 import { useEffect, useState } from "react";
-import { fetchMapData } from "../services/api";
+import { fetchMapData, sendLocationDataToBackend } from "../services/api";
 
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
@@ -25,6 +25,9 @@ export default function BusMap() {
   const [destinationMode, setDestinationMode] = useState(false)
   const [destination, setDestination] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+
+  const [routeResult, setRouteResult] = useState(null);
+
   
   // Lấy dữ liệu API
   useEffect(() => {
@@ -113,7 +116,7 @@ const addUserLocation = () => {
   )
 };
 
-  // // Thông tin vị trí hiện tại của User
+  // Thông tin vị trí hiện tại của User
   useEffect(() => {
     console.log("User Location: ", userLocation)
   }, [userLocation])
@@ -142,23 +145,106 @@ const addUserLocation = () => {
     return () => map.removeLayer(marker);
   }, [destination, map])
 
+  // demo:
 
   if (!data) return <p>Đang tải bản đồ...</p>;
 
   return (
-    <div>
+    <div style={{ display: "flex", gap: "1rem" }}>
+      {/* Cột trái: Bản đồ */}
       <div
         id="map"
         style={{
-          width: "100%",
+          flex: "0 0 70%", // chiếm 70%
           height: "53rem",
           borderRadius: "8px",
+          border: "1px solid #ccc",
         }}
       ></div>
-      <button onClick={addUserLocation}>Lấy vị trí người dùng</button>
-      <button onClick={() => {setDestinationMode(!destinationMode)}}>
-        {destinationMode ? "🟡 Chế độ chọn điểm đến đang bật" : "🟥 Chế độ chọn điểm đến đang tắt"}
-      </button>
+
+      {/* Cột phải: Panel thông tin */}
+      <div
+        style={{
+          flex: "0 0 30%", // chiếm 30%
+          background: "#fff",
+          borderRadius: "8px",
+          border: "1px solid #ddd",
+          padding: "1rem",
+          overflowY: "auto",
+          height: "53rem",
+        }}
+      >
+        <h3>Kết quả tuyến đường</h3>
+        {routeResult && (
+          <p>
+            <strong>Bán kính tìm trạm: </strong> {routeResult.buffer_meter} m
+          </p>
+        )} 
+        {!routeResult ? (
+          <p>Chưa có dữ liệu.</p>
+        ) : (
+          <>
+            <p>
+              <strong>Các tuyến khả dụng:</strong>{" "}
+              {routeResult.qualified_routes?.join(", ") ||
+                "Không có tuyến phù hợp"}
+            </p>
+            <hr />
+            <h4>Trạm gần bạn</h4>
+            <ul>
+              {routeResult.stations_near_user?.map((s) => (
+                <li key={s.id}>
+                  {s.name} ({s.code})
+                </li>
+              ))}
+            </ul>
+            <h4>Trạm gần điểm đến</h4>
+            <ul>
+              {routeResult.stations_near_destination?.map((s) => (
+                <li key={s.id}>
+                  {s.name} ({s.code}) - <strong> {s.straight_distance} m </strong>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {/* Nút điều khiển */}
+        <div style={{ marginTop: "1rem" }}>
+          <button onClick={addUserLocation}>Lấy vị trí người dùng</button>
+          <button onClick={() => setDestinationMode(!destinationMode)}>
+            {destinationMode
+              ? "🟡 Chế độ chọn điểm đến đang bật"
+              : "🟥 Chế độ chọn điểm đến đang tắt"}
+          </button>
+          <button
+            disabled={!userLocation || !destination}
+            style={{
+              opacity: !userLocation || !destination ? 0.5 : 1,
+              marginTop: "0.5rem",
+            }}
+            onClick={async () => {
+              if (!userLocation || !destination)
+                return alert("Thiếu vị trí người dùng hoặc điểm đến");
+              try {
+                const res = await sendLocationDataToBackend(
+                  userLocation.latitude,
+                  userLocation.longitude,
+                  destination.lat,
+                  destination.lng
+                );
+                console.log("Server response:", res);
+                setRouteResult(res);
+              } catch (err) {
+                console.error("Lỗi khi gửi:", err);
+                alert("Không gửi được dữ liệu.");
+              }
+            }}
+          >
+            Gửi vị trí lên server
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
