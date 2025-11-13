@@ -13,7 +13,7 @@ class User(AbstractUser):
     geom = models.PointField(srid=4326, null=True, blank=True)
 
     def __str__(self):
-        return self.username
+        return f"{self.username}"
 
 
 class BusStation(models.Model):
@@ -22,7 +22,7 @@ class BusStation(models.Model):
     geom = models.PointField(srid=4326)
 
     def __str__(self):
-        return self.name or f"Station {self.id}"
+        return f"{self.name}"
 
 
 class BusRoute(models.Model):
@@ -53,7 +53,7 @@ class BusRoute(models.Model):
             self.save(update_fields=['start_station', 'end_station'])
 
     def __str__(self):
-        return self.name or f"Route {self.route_code}"
+        return f"{self.name}"
 
 
 class RouteStation(models.Model):
@@ -85,4 +85,4 @@ class PolygonZone(models.Model):
     geom = models.PolygonField(srid=4326)
 
     def __str__(self):
-        return self.name or f"Zone {self.id}"
+        return f"{self.id}"
