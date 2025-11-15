@@ -89,14 +89,30 @@ class MapView(APIView):
             qualified_stations.append({
                 "route_code":code,
                 "buffer": meter_radius,
-                "stations_near_user": [
-                    {"id": station.id, "name":station.name, "code":station.code, "straight_distance": round(station.geom.distance(user_location) * 111_000, 2)}
-                    for station in code_stations_near_user
-                ],
-                "stations_near_destination": [
-                    {"id": station.id, "name":station.name, "code":station.code, "straight_distance": round(station.geom.distance(user_location) * 111_000, 2)}
-                    for station in code_stations_near_destination
-                ]
+                "stations_near_user": sorted(
+                    [
+                        {
+                            "id":station.id,
+                            "name":station.name,
+                            "code":station.code,
+                            "straight_distance": round(station.geom.distance(user_location) * 111_000, 2)
+                        }
+                        for station in code_stations_near_user
+                    ],  
+                    key=lambda station:station["straight_distance"]
+                ),
+                "stations_near_destination": sorted(
+                    [
+                        {
+                            "id":station.id,
+                            "name":station.name,
+                            "code":station.code,
+                            "straight_distance": round(station.geom.distance(destination_location) * 111_000, 2)
+                        }
+                        for station in code_stations_near_destination
+                    ], 
+                    key=lambda station:station["straight_distance"]
+                )
             })
 
         print(f"----- 1, Stations_near_user: {stations_near_user}")
