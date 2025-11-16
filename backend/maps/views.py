@@ -30,7 +30,7 @@ class MapView(APIView):
         end_long = float(request.data.get("end_long"))
 
         # (W.I.P): Dùng buffer để tìm các trạm phù hợp: (1 km = 0.009)
-        meter_radius = 4500
+        meter_radius = 8500
         radius = meter_radius / 111000   # vì là hệ toạ độ 4326 nên cần đổi 500m sang 0.0045 độ - 20km
 
         user_location = Point(start_long, start_lat, srid=4326)
@@ -86,68 +86,67 @@ class MapView(APIView):
                 id__in=route_station_ids
             )
 
+            # 
+            stations_near_user_sorted = sorted(
+                [
+                    {
+                        "id": station.id,
+                        "name": station.name,
+                        "code": station.code,
+                        "route_code": code,
+                        "station_order": RouteStation.objects.filter(
+                            route__route_code=code,
+                            station=station
+                        ).first().order,
+                        "straight_distance": round(station.geom.distance(user_location) * 111_000, 2)
+                    }
+                    for station in code_stations_near_user
+                ], 
+                key=lambda station: station["straight_distance"]
+            )
+
+            stations_near_destination_sorted = sorted(
+                [
+                    {
+                        "id": station.id,
+                        "name": station.name,
+                        "code": station.code,
+                        "station_order": RouteStation.objects.filter(
+                            route__route_code=code,
+                            station=station
+                        ).first().order,
+                        "straight_distance": round(station.geom.distance(destination_location) * 111_000, 2)
+                    }
+                    for station in code_stations_near_destination
+                ], 
+                key=lambda station: station["straight_distance"]
+            )
+
             qualified_stations.append({
                 "route_code":code,
                 "buffer": meter_radius,
-                "stations_near_user": sorted(
-                    [
-                        {
-                            "id":station.id,
-                            "name":station.name,
-                            "code":station.code,
-                            "straight_distance": round(station.geom.distance(user_location) * 111_000, 2)
-                        }
-                        for station in code_stations_near_user
-                    ],  
-                    key=lambda station:station["straight_distance"]
-                ),
-                "stations_near_destination": sorted(
-                    [
-                        {
-                            "id":station.id,
-                            "name":station.name,
-                            "code":station.code,
-                            "straight_distance": round(station.geom.distance(destination_location) * 111_000, 2)
-                        }
-                        for station in code_stations_near_destination
-                    ], 
-                    key=lambda station:station["straight_distance"]
-                )
+                "total_walk_distance": stations_near_user_sorted[0]["straight_distance"] + stations_near_destination_sorted[0]["straight_distance"],
+                "stations_near_user": stations_near_user_sorted,
+                "stations_near_destination": stations_near_destination_sorted
             })
 
-        print(f"----- 1, Stations_near_user: {stations_near_user}")
-        print(f"----- 2, Stations_near_destination: {stations_near_destination}")
-        print(f"----- 3, user_route_codes: {user_route_codes}")
-        print(f"----- 4, dest_route_codes: {dest_route_codes}")
-        print(f"----- 5, qualified_route_codes: {qualified_route_codes}")
-        # -End (WIP)
-        
-        # # Ý tưởng
-        # # Demo:
-        # for qualified_route_code in qualified_route_codes:
-        #     busroute_nearest_user = BusRoute.objects.filter(
-        #         start_station=stations_near_user[0]
-        #     ).get(
-        #         route_code=qualified_route_code
-        #     )
-        #     print(f"-1- {qualified_route_code}: {busroute_nearest_user}")
+        # Chọn route tốt nhất dựa trên total_walk_distance của mỗi obj trong qualified_stations:
+        shortest_obj = qualified_stations[0]
+        for object in qualified_stations:
+            if (object["total_walk_distance"] < shortest_obj["total_walk_distance"]):
+                shortest_obj = object
 
-        #     busroute_nearest_destination = BusRoute.objects.filter(
-        #         end_station=stations_near_destination[0]
-        #     ).get(
-        #         route_code=qualified_route_code
-        #     )
-        #     print(f"-2- {qualified_route_code}: {busroute_nearest_destination}")
-        # #
-        # #
+        # để lấy order của 2 trạm gần vị trí điểm đi và điểm đến nhất, lấy từ API:
+        print(f"station_nearest_user_obj = {shortest_obj["stations_near_user"][0]}")
+        print(f"station_nearest_destination_obj = {shortest_obj["stations_near_destination"][0]}")
  
         return Response({
             "message": "Dữ liệu đã nhận.",
             "buffer_meter": round(radius * 111_000, 2),  # đổi độ sang mét, 1 độ = 111.000m
+            "shortest_obj": shortest_obj,
             "qualified_routes": qualified_route_codes,
             "qualified_stations": qualified_stations
         })
-
 
 class RouteDetailView(APIView):
     def get(self, request, route_code):
@@ -156,6 +155,15 @@ class RouteDetailView(APIView):
         related_stations = BusStation.objects.filter(
             station_routes__route__route_code=route_code
         ).distinct()
+        bus_route = []
+        for route in related_routes:
+            bus_route.append({
+                "id": route.id,
+                "name": route.name,
+                "route_code": route.route_code,
+                "geom": route.geom,
+                "direction": route.direction
+            })
         data = {
             "bus_routes": related_routes,
             "bus_stations": related_stations,

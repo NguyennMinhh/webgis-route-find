@@ -47,7 +47,7 @@ export default function RouteDetail() {
     // Vẽ trạm
     data.bus_stations.forEach((st) => {
       const coords = parsePoint(st.geom);
-      if (coords) L.marker(coords).addTo(map).bindPopup(st.name);
+      if (coords) L.marker(coords).addTo(map).bindPopup(`<strong>Name: </strong>${st.name} <br> <strong>Id: </strong>${st.id}`);
     });
 
     // Vẽ tuyến có mũi tên hướng
@@ -78,7 +78,7 @@ export default function RouteDetail() {
 
         // Popup tên tuyến
         polyline.bindPopup(
-          `${rt.name} (${rt.direction === "go" ? "Chiều đi" : "Chiều về"})`
+          `<strong>Name: </strong>${rt.name} (${rt.direction === "go" ? "Chiều đi" : "Chiều về"}) <br> <strong>Id: </strong> ${rt.id}`
         );
       }
     });
