@@ -150,28 +150,47 @@ class MapView(APIView):
 
 class RouteDetailView(APIView):
     def get(self, request, route_code):
-        # Hiển thị trạm duy nhất (28, 36)
         related_routes = BusRoute.objects.filter(route_code=route_code).all()
         related_stations = BusStation.objects.filter(
             station_routes__route__route_code=route_code
         ).distinct()
-        bus_route = []
+
+        # ✅ Tự tạo data structure
+        bus_stations = []
+        for station in related_stations:
+            rs = RouteStation.objects.filter(
+                route__route_code=route_code,
+                station=station
+            ).first()
+            
+            bus_stations.append({
+                "id": station.id,
+                "code": station.code,
+                "name": station.name,
+                "order": rs.order if rs else None,
+                "geom": station.geom.wkt if station.geom else None
+            })
+
+        bus_routes = []
         for route in related_routes:
-            bus_route.append({
+            rs = RouteStation.objects.filter(route=route).first()
+
+            bus_routes.append({
                 "id": route.id,
                 "name": route.name,
                 "route_code": route.route_code,
-                "geom": route.geom,
+                "order": rs.order if rs else None,
+                "geom": route.geom.wkt if route.geom else None,
                 "direction": route.direction
             })
+        
         data = {
-            "bus_routes": related_routes,
-            "bus_stations": related_stations,
-            "users": User.objects.all(),
+            "bus_routes": bus_routes,
+            "bus_stations": bus_stations,
         }
-        serializer = MapSerializer(data)
-        return Response(serializer.data)
-
+        
+        # ✅ Trả về trực tiếp, không cần serializer
+        return Response(data)
 
 class RouteCodeListView(APIView):
     def get(self, request):
