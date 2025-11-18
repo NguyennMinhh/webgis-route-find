@@ -1,12 +1,14 @@
 from django.http import HttpResponse
 from rest_framework.response import Response
 from django.shortcuts import render
+
 from .models import User, BusRoute, BusStation, RouteStation
 from maps.serializers import UserSerializer, MapSerializer, RouteCodeSerializer
 from rest_framework import generics
 from rest_framework.views import APIView
 from django.contrib.gis.geos import Point
 from .services.route_path import get_route_path
+from .services.get_route_geom import get_route_geom
 
 
 class UserListApiView(generics.ListAPIView):
@@ -31,7 +33,7 @@ class MapView(APIView):
         end_long = float(request.data.get("end_long"))
 
         # (W.I.P): Dùng buffer để tìm các trạm phù hợp: (1 km = 0.009)
-        meter_radius = 8500
+        meter_radius = 12500
         radius = meter_radius / 111000
 
         user_location = Point(start_long, start_lat, srid=4326)
@@ -96,7 +98,8 @@ class MapView(APIView):
                             route__route_code=code,
                             station=station
                         ).first().order,
-                        "straight_distance": round(station.geom.distance(user_location) * 111_000, 2)
+                        "straight_distance": round(station.geom.distance(user_location) * 111_000, 2),
+                        "geom": station.geom.wkt
                     }
                     for station in code_stations_near_user
                 ], 
@@ -141,18 +144,36 @@ class MapView(APIView):
         
         # Gọi hàm tìm đường
         route_path = get_route_path(start_order, end_order, route_code)
-        
+
+        start_station = shortest_obj["stations_near_user"][0]
+        end_station = shortest_obj["stations_near_destination"][0]
+
+        start_station_obj = BusStation.objects.get(id=start_station["id"])
+        end_station_obj = BusStation.objects.get(id=end_station["id"])
+
+        # Gọi hàm lấy geometry đường đi
+        start_route_geom = get_route_geom(
+            user_location.y, user_location.x,
+            start_station_obj.geom.y, start_station_obj.geom.x
+        )
+        end_route_geom = get_route_geom(
+            end_station_obj.geom.y, end_station_obj.geom.x,
+            destination_location.y, destination_location.x
+        )
+
         # TẠO SHORTEST_OBJ MỚI
         shortest_obj_v2 = {
             "route_code": route_code,
-            "start_station": shortest_obj["stations_near_user"][0],
-            "end_station": shortest_obj["stations_near_destination"][0],
+            "start_station": start_station,
+            "end_station": end_station,
             "total_walk_distance": shortest_obj["total_walk_distance"],
             "total_stations": route_path['total_stations'],
             "user_location": [user_location.x, user_location.y],
             "destination_location": [destination_location.x, destination_location.y],
             "stations": route_path['stations'],  # Danh sách trạm sẽ đi
-            "routes": route_path['routes']       # Danh sách route sẽ đi, và bỏ route cuối đi để đỡ bị thừa
+            "routes": route_path['routes'],       # Danh sách route sẽ đi, và bỏ route cuối đi để đỡ bị thừa
+            "start_route_geom": start_route_geom,
+            "end_route_geom": end_route_geom
         }
  
         return Response({

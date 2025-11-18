@@ -81,6 +81,32 @@ export default function ResultRoute() {
       }
     });
 
+    // Vẽ đường đi bộ đầu (user → start station)
+    if (resultRoute.start_route_geom) {
+      const coords = resultRoute.start_route_geom.geometry.coordinates.map(
+        ([lng, lat]) => [lat, lng]
+      );
+      L.polyline(coords, {
+        color: 'black',
+        weight: 3,
+        opacity: 0.8,
+        dashArray: '5, 10'
+      }).addTo(map).bindPopup(`Đi bộ: ${(resultRoute.start_route_geom.distance / 1000).toFixed(2)}km`);
+    }
+
+    // Vẽ đường đi bộ cuối (end station → destination)
+    if (resultRoute.end_route_geom) {
+      const coords = resultRoute.end_route_geom.geometry.coordinates.map(
+        ([lng, lat]) => [lat, lng]
+      );
+      L.polyline(coords, {
+        color: 'black',
+        weight: 3,
+        opacity: 0.8,
+        dashArray: '5, 10'
+      }).addTo(map).bindPopup(`Đi bộ: ${(resultRoute.end_route_geom.distance / 1000).toFixed(2)}km`);
+    }
+
     return () => map.remove();
   }, [resultRoute]);
 
@@ -89,7 +115,7 @@ export default function ResultRoute() {
   if (!resultRoute) {
     return (
       <div style={{ padding: "20px", textAlign: "center" }}>
-        <h2>❌ Không có dữ liệu</h2>
+        <h2>Không có dữ liệu</h2>
         <p>Vui lòng chọn tuyến từ trang tìm kiếm</p>
       </div>
     );
@@ -97,21 +123,21 @@ export default function ResultRoute() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>🚌 Chi tiết tuyến: {resultRoute.route_code}</h2>
+      <h2>Chi tiết tuyến: {resultRoute.route_code}</h2>
       
       <div style={{ background: "#f0f8ff", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
         <h3>Thông tin chung</h3>
-        <p><strong>📍 Trạm lên xe:</strong> {resultRoute.start_station.name} ({resultRoute.start_station.code})</p>
-        <p><strong>🎯 Trạm xuống xe:</strong> {resultRoute.end_station.name} ({resultRoute.end_station.code})</p>
-        <p><strong>🚶 Tổng quãng đi bộ:</strong> {resultRoute.total_walk_distance.toFixed(2)}m</p>
-        <p><strong>🚏 Tổng số trạm:</strong> {resultRoute.total_stations} trạm</p>
+        <p><strong>Trạm lên xe:</strong> {resultRoute.start_station.name} ({resultRoute.start_station.code})</p>
+        <p><strong>Trạm xuống xe:</strong> {resultRoute.end_station.name} ({resultRoute.end_station.code})</p>
+        <p><strong>Tổng quãng đi bộ:</strong> {resultRoute.total_walk_distance.toFixed(2)}m</p>
+        <p><strong>Tổng số trạm:</strong> {resultRoute.total_stations} trạm</p>
       </div>
 
       {/* Bản đồ */}
       <div id="result-map" style={{ width: "100%", height: "500px", borderRadius: "8px", marginBottom: "20px" }}></div>
 
       {/* Danh sách trạm */}
-      <h3>📍 Danh sách trạm sẽ đi qua:</h3>
+      <h3>Danh sách trạm sẽ đi qua:</h3>
       <ol>
         {resultRoute.stations.map((station) => (
           <li key={station.id} style={{ marginBottom: "10px" }}>
@@ -123,7 +149,7 @@ export default function ResultRoute() {
       </ol>
 
       {/* Danh sách routes */}
-      <h3>🗺️ Danh sách đoạn đường:</h3>
+      <h3>Danh sách đoạn đường:</h3>
       <ul>
         {resultRoute.routes.map((route) => (
           <li key={route.id} style={{ marginBottom: "10px" }}>

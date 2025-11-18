@@ -29,7 +29,7 @@ export default function RouteDetail() {
         console.log("Response:", res);
         setData(res);
       } catch (err) {
-        console.error("❌ Lỗi khi tải dữ liệu tuyến:", err.message);
+        console.error("Lỗi khi tải dữ liệu tuyến:", err.message);
       }
     };
     load();
@@ -90,7 +90,7 @@ export default function RouteDetail() {
 
   return (
     <div>
-      <h2>🚍 Tuyến {route_code}</h2>
+      <h2>Tuyến {route_code}</h2>
       <div
         id="map"
         style={{
@@ -108,7 +108,7 @@ export default function RouteDetail() {
         <span style={{ color: "#FF4500", fontWeight: "bold" }}>── Chiều về</span>
       </div>
 
-      <h3>📍 Trạm của tuyến</h3>
+      <h3>Trạm của tuyến</h3>
       <ul>
         {data.bus_stations.map((s) => (
           <li key={s.id}>

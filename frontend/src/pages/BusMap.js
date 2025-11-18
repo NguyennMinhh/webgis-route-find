@@ -222,7 +222,7 @@ export default function BusMap() {
               fontWeight: "bold",
             }}
           >
-            📍 Lấy vị trí của tôi
+            Lấy vị trí của tôi
           </button>
 
           <button
@@ -270,12 +270,12 @@ export default function BusMap() {
               }
             }}
           >
-            🔍 Tìm tuyến xe buýt
+            Tìm tuyến xe buýt
           </button>
         </div>
         
         {/* Hiển thị thông tin */}
-        <h3>🔍 Kết quả tìm kiếm tuyến</h3>
+        <h3>Kết quả tìm kiếm tuyến</h3>
 
         {!routeResult ? (
           <div
@@ -287,7 +287,7 @@ export default function BusMap() {
           >
             <p>Chưa có dữ liệu tìm kiếm.</p>
             <p style={{ fontSize: "14px" }}>
-              👆 Nhấn nút bên trên để bắt đầu
+              Nhấn nút bên trên để bắt đầu
             </p>
           </div>
         ) : (
@@ -302,10 +302,10 @@ export default function BusMap() {
               }}
             >
               <p style={{ margin: "4px 0", fontSize: "14px" }}>
-                <strong>📏 Bán kính:</strong> {routeResult.buffer_meter}m
+                <strong>Bán kính:</strong> {routeResult.buffer_meter}m
               </p>
               <p style={{ margin: "4px 0", fontSize: "14px" }}>
-                <strong>🚌 Tuyến khả dụng:</strong>{" "}
+                <strong>Tuyến khả dụng:</strong>{" "}
                 {routeResult.qualified_routes?.length > 0
                   ? routeResult.qualified_routes.join(", ")
                   : "Không có"}
@@ -326,7 +326,7 @@ export default function BusMap() {
                   color: "#2E7D32", 
                   fontSize: "20px" 
                 }}>
-                  ⭐ Tuyến tốt nhất: {routeResult.shortest_obj.route_code}
+                  Tuyến tốt nhất: {routeResult.shortest_obj.route_code}
                 </h4>
 
                 <button
@@ -344,14 +344,14 @@ export default function BusMap() {
                 
                 <div style={{ background: "#fff", padding: "10px", borderRadius: "4px", marginTop: "10px" }}>
                   <p style={{ margin: "4px 0", fontSize: "14px", fontWeight: "bold", color: "#1976D2" }}>
-                    🚶 Tổng quãng đi bộ: {routeResult.shortest_obj.total_walk_distance.toFixed(2)}m
+                    Tổng quãng đi bộ: {routeResult.shortest_obj.total_walk_distance.toFixed(2)}m
                   </p>
                   
                   <hr style={{ margin: "10px 0", border: "none", borderTop: "1px solid #ddd" }} />
                   
                   <div style={{ marginBottom: "12px" }}>
                     <p style={{ margin: "4px 0 6px 0", fontSize: "14px", fontWeight: "bold" }}>
-                      📍 Trạm gần bạn nhất:
+                      Trạm gần bạn nhất:
                     </p>
                     {routeResult.shortest_obj.start_station ? (
                       <div>
@@ -382,7 +382,7 @@ export default function BusMap() {
                   
                   <div>
                     <p style={{ margin: "4px 0 6px 0", fontSize: "14px", fontWeight: "bold" }}>
-                      🎯 Trạm gần điểm đến nhất:
+                      Trạm gần điểm đến nhất:
                     </p>
                     {routeResult.shortest_obj.end_station ? (
                       <div>
@@ -440,7 +440,7 @@ export default function BusMap() {
                     fontSize: "18px"
                   }}
                 >
-                  🚌 Tuyến {routeData.route_code}
+                  Tuyến {routeData.route_code}
                   <span style={{ fontSize: "12px", color: "#666" }}>
                     ({routeData.total_walk_distance.toFixed(2)}m)
                   </span>
@@ -455,7 +455,7 @@ export default function BusMap() {
                       fontSize: "13px",
                     }}
                   >
-                    📍 Trạm gần bạn (theo thứ tự):
+                    Trạm gần bạn (theo thứ tự):
                   </p>
                   {routeData.stations_near_user?.length > 0 ? (
                     <ol
@@ -505,7 +505,7 @@ export default function BusMap() {
                       fontSize: "13px",
                     }}
                   >
-                    🎯 Trạm gần điểm đến (theo thứ tự):
+                    Trạm gần điểm đến (theo thứ tự):
                   </p>
                   {routeData.stations_near_destination?.length > 0 ? (
                     <ol
@@ -557,7 +557,7 @@ export default function BusMap() {
                   color: "#d32f2f",
                 }}
               >
-                <p>❌ Không tìm thấy tuyến phù hợp</p>
+                <p>Không tìm thấy tuyến phù hợp</p>
                 <p style={{ fontSize: "13px" }}>
                   Thử tăng bán kính tìm kiếm hoặc chọn điểm khác
                 </p>
