@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import BusMap from "./pages/BusMap";
 import RouteDetail from "./pages/RouteDetail";
+import ResultRoute from "./pages/ResultRoute";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<BusMap />} />
           <Route path="/route/:route_code" element={<RouteDetail />} />
+          <Route path="/result-route" element={<ResultRoute />} />
         </Routes>
       </div>
     </Router>

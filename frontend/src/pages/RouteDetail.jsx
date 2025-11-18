@@ -29,7 +29,7 @@ export default function RouteDetail() {
         console.log("Response:", res);
         setData(res);
       } catch (err) {
-        console.error("❌ Lỗi khi tải dữ liệu tuyến:", err.message);
+        console.error("Lỗi khi tải dữ liệu tuyến:", err.message);
       }
     };
     load();
@@ -47,7 +47,7 @@ export default function RouteDetail() {
     // Vẽ trạm
     data.bus_stations.forEach((st) => {
       const coords = parsePoint(st.geom);
-      if (coords) L.marker(coords).addTo(map).bindPopup(st.name);
+      if (coords) L.marker(coords).addTo(map).bindPopup(`<strong>Order: </strong>${st.order} <br> <strong>Name: </strong>${st.name} <br> <strong>Id: </strong>${st.id}`);
     });
 
     // Vẽ tuyến có mũi tên hướng
@@ -78,7 +78,7 @@ export default function RouteDetail() {
 
         // Popup tên tuyến
         polyline.bindPopup(
-          `${rt.name} (${rt.direction === "go" ? "Chiều đi" : "Chiều về"})`
+          `<strong>Order: </strong>${rt.order} <br> <strong>Name: </strong>${rt.name} (${rt.direction === "go" ? "Chiều đi" : "Chiều về"}) <br> <strong>Id: </strong> ${rt.id}`
         );
       }
     });
@@ -90,7 +90,7 @@ export default function RouteDetail() {
 
   return (
     <div>
-      <h2>🚍 Tuyến {route_code}</h2>
+      <h2>Tuyến {route_code}</h2>
       <div
         id="map"
         style={{
@@ -108,7 +108,7 @@ export default function RouteDetail() {
         <span style={{ color: "#FF4500", fontWeight: "bold" }}>── Chiều về</span>
       </div>
 
-      <h3>📍 Trạm của tuyến</h3>
+      <h3>Trạm của tuyến</h3>
       <ul>
         {data.bus_stations.map((s) => (
           <li key={s.id}>
