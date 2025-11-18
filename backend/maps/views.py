@@ -6,6 +6,7 @@ from maps.serializers import UserSerializer, MapSerializer, RouteCodeSerializer
 from rest_framework import generics
 from rest_framework.views import APIView
 from django.contrib.gis.geos import Point
+from .services.route_path import get_route_path
 
 
 class UserListApiView(generics.ListAPIView):
@@ -31,7 +32,7 @@ class MapView(APIView):
 
         # (W.I.P): Dùng buffer để tìm các trạm phù hợp: (1 km = 0.009)
         meter_radius = 8500
-        radius = meter_radius / 111000   # vì là hệ toạ độ 4326 nên cần đổi 500m sang 0.0045 độ - 20km
+        radius = meter_radius / 111000
 
         user_location = Point(start_long, start_lat, srid=4326)
         destination_location = Point(end_long, end_lat, srid=4326)
@@ -43,7 +44,6 @@ class MapView(APIView):
         stations_near_destination = BusStation.objects.filter(
             geom__within=destination_buffer
         )
-
 
         # Lọc bus_station bằng bus_route trùng mã
         user_route_codes = (
@@ -70,7 +70,6 @@ class MapView(APIView):
         # Lọc các trạm có thể đi dựa trên các route_codes:
         qualified_stations = []
         for code in qualified_route_codes:
-
             # 1. Lấy station_ids thuộc tuyến (qua RouteStation)
             route_station_ids = RouteStation.objects.filter(
                 route__route_code=code
@@ -86,7 +85,6 @@ class MapView(APIView):
                 id__in=route_station_ids
             )
 
-            # 
             stations_near_user_sorted = sorted(
                 [
                     {
@@ -94,7 +92,7 @@ class MapView(APIView):
                         "name": station.name,
                         "code": station.code,
                         "route_code": code,
-                        "station_order": RouteStation.objects.filter(
+                        "order": RouteStation.objects.filter(
                             route__route_code=code,
                             station=station
                         ).first().order,
@@ -111,7 +109,7 @@ class MapView(APIView):
                         "id": station.id,
                         "name": station.name,
                         "code": station.code,
-                        "station_order": RouteStation.objects.filter(
+                        "order": RouteStation.objects.filter(
                             route__route_code=code,
                             station=station
                         ).first().order,
@@ -123,30 +121,48 @@ class MapView(APIView):
             )
 
             qualified_stations.append({
-                "route_code":code,
+                "route_code": code,
                 "buffer": meter_radius,
                 "total_walk_distance": stations_near_user_sorted[0]["straight_distance"] + stations_near_destination_sorted[0]["straight_distance"],
                 "stations_near_user": stations_near_user_sorted,
                 "stations_near_destination": stations_near_destination_sorted
             })
 
-        # Chọn route tốt nhất dựa trên total_walk_distance của mỗi obj trong qualified_stations:
+        # Chọn route tốt nhất dựa trên total_walk_distance
         shortest_obj = qualified_stations[0]
-        for object in qualified_stations:
-            if (object["total_walk_distance"] < shortest_obj["total_walk_distance"]):
-                shortest_obj = object
+        for obj in qualified_stations:
+            if obj["total_walk_distance"] < shortest_obj["total_walk_distance"]:
+                shortest_obj = obj
 
-        # để lấy order của 2 trạm gần vị trí điểm đi và điểm đến nhất, lấy từ API:
-        print(f"station_nearest_user_obj = {shortest_obj["stations_near_user"][0]}")
-        print(f"station_nearest_destination_obj = {shortest_obj["stations_near_destination"][0]}")
+        # LẤY THÔNG TIN ĐƯỜNG ĐI CHI TIẾT
+        start_order = shortest_obj["stations_near_user"][0]["order"]
+        end_order = shortest_obj["stations_near_destination"][0]["order"]
+        route_code = shortest_obj["route_code"]
+        
+        # Gọi hàm tìm đường
+        route_path = get_route_path(start_order, end_order, route_code)
+        
+        # TẠO SHORTEST_OBJ MỚI
+        shortest_obj_v2 = {
+            "route_code": route_code,
+            "start_station": shortest_obj["stations_near_user"][0],
+            "end_station": shortest_obj["stations_near_destination"][0],
+            "total_walk_distance": shortest_obj["total_walk_distance"],
+            "total_stations": route_path['total_stations'],
+            "user_location": [user_location.x, user_location.y],
+            "destination_location": [destination_location.x, destination_location.y],
+            "stations": route_path['stations'],  # Danh sách trạm sẽ đi
+            "routes": route_path['routes']       # Danh sách route sẽ đi, và bỏ route cuối đi để đỡ bị thừa
+        }
  
         return Response({
             "message": "Dữ liệu đã nhận.",
-            "buffer_meter": round(radius * 111_000, 2),  # đổi độ sang mét, 1 độ = 111.000m
-            "shortest_obj": shortest_obj,
-            "qualified_routes": qualified_route_codes,
-            "qualified_stations": qualified_stations
+            "buffer_meter": round(radius * 111_000, 2),
+            "shortest_obj": shortest_obj_v2,  # Response mới
+            "qualified_routes": list(qualified_route_codes),
+            "qualified_stations": qualified_stations,  # Giữ lại để debug
         })
+
 
 class RouteDetailView(APIView):
     def get(self, request, route_code):
@@ -155,7 +171,45 @@ class RouteDetailView(APIView):
             station_routes__route__route_code=route_code
         ).distinct()
 
-        # ✅ Tự tạo data structure
+        bus_stations = []
+        for station in related_stations:
+            rs = RouteStation.objects.filter(
+                route__route_code=route_code,
+                station=station
+            ).first()
+            
+            bus_stations.append({
+                "id": station.id,
+                "code": station.code,
+                "name": station.name,
+                "order": rs.order if rs else None,
+                "geom": station.geom.wkt if station.geom else None
+            })
+
+        bus_routes = []
+        for route in related_routes:
+            bus_routes.append({
+                "id": route.id,
+                "name": route.name,
+                "route_code": route.route_code,
+                "geom": route.geom.wkt if route.geom else None,
+                "direction": route.direction
+            })
+        
+        return Response({
+            "bus_routes": bus_routes,
+            "bus_stations": bus_stations,
+        })
+
+
+class RouteDetailView(APIView):
+    def get(self, request, route_code):
+        related_routes = BusRoute.objects.filter(route_code=route_code).all()
+        related_stations = BusStation.objects.filter(
+            station_routes__route__route_code=route_code
+        ).distinct()
+
+        # Tự tạo data structure
         bus_stations = []
         for station in related_stations:
             rs = RouteStation.objects.filter(
@@ -185,11 +239,11 @@ class RouteDetailView(APIView):
             })
         
         data = {
-            "bus_routes": bus_routes,
+            "bus_routes": bus_routes, # bỏ route cuối cùng tại bị thừa
             "bus_stations": bus_stations,
         }
         
-        # ✅ Trả về trực tiếp, không cần serializer
+        # Trả về trực tiếp, không cần serializer
         return Response(data)
 
 class RouteCodeListView(APIView):

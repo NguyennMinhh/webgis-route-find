@@ -3,6 +3,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-polylinedecorator";
 import { useEffect, useState } from "react";
 import { fetchMapData, sendLocationDataToBackend } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
@@ -27,6 +28,7 @@ export default function BusMap() {
   const [userLocation, setUserLocation] = useState(null);
 
   const [routeResult, setRouteResult] = useState(null);
+  const navigate = useNavigate();
 
   // Lấy dữ liệu API
   useEffect(() => {
@@ -326,6 +328,19 @@ export default function BusMap() {
                 }}>
                   ⭐ Tuyến tốt nhất: {routeResult.shortest_obj.route_code}
                 </h4>
+
+                <button
+                  onClick={() =>
+                    navigate("/result-route", {
+                      state: {
+                        resultRoute: routeResult.shortest_obj
+                      }
+                    })
+                  }
+                  style={{ padding: "10px" }}
+                >
+                  Chọn tuyến
+                </button>   
                 
                 <div style={{ background: "#fff", padding: "10px", borderRadius: "4px", marginTop: "10px" }}>
                   <p style={{ margin: "4px 0", fontSize: "14px", fontWeight: "bold", color: "#1976D2" }}>
@@ -338,9 +353,9 @@ export default function BusMap() {
                     <p style={{ margin: "4px 0 6px 0", fontSize: "14px", fontWeight: "bold" }}>
                       📍 Trạm gần bạn nhất:
                     </p>
-                    {routeResult.shortest_obj.stations_near_user?.length > 0 ? (
+                    {routeResult.shortest_obj.start_station ? (
                       <div>
-                        <p 
+                        <p
                           style={{ 
                             margin: "2px 0 2px 10px", 
                             fontSize: "13px",
@@ -348,15 +363,15 @@ export default function BusMap() {
                             color: "#1976D2",
                             textDecoration: "underline"
                           }}
-                          onClick={() => zoomToStation(routeResult.shortest_obj.stations_near_user[0].name)}
+                          onClick={() => zoomToStation(routeResult.shortest_obj.start_station.name)}
                           title="Click để xem trạm trên bản đồ"
                         >
-                          <strong>{routeResult.shortest_obj.stations_near_user[0].name}</strong> ({routeResult.shortest_obj.stations_near_user[0].code})
+                          <strong>{routeResult.shortest_obj.start_station.name}</strong> ({routeResult.shortest_obj.start_station.code})
                         </p>
                         <p style={{ margin: "0 0 0 10px", fontSize: "11px", color: "#666" }}>
-                          → Đi bộ {routeResult.shortest_obj.stations_near_user[0].straight_distance}m
-                          {routeResult.shortest_obj.stations_near_user[0].order && 
-                            ` • Order: ${routeResult.shortest_obj.stations_near_user[0].order}`
+                          → Đi bộ {routeResult.shortest_obj.start_station.straight_distance}m
+                          {routeResult.shortest_obj.start_station.order && 
+                            ` • Order: ${routeResult.shortest_obj.start_station.order}`
                           }
                         </p>
                       </div>
@@ -369,7 +384,7 @@ export default function BusMap() {
                     <p style={{ margin: "4px 0 6px 0", fontSize: "14px", fontWeight: "bold" }}>
                       🎯 Trạm gần điểm đến nhất:
                     </p>
-                    {routeResult.shortest_obj.stations_near_destination?.length > 0 ? (
+                    {routeResult.shortest_obj.end_station ? (
                       <div>
                         <p 
                           style={{ 
@@ -379,15 +394,15 @@ export default function BusMap() {
                             color: "#1976D2",
                             textDecoration: "underline"
                           }}
-                          onClick={() => zoomToStation(routeResult.shortest_obj.stations_near_destination[0].name)}
+                          onClick={() => zoomToStation(routeResult.shortest_obj.end_station.name)}
                           title="Click để xem trạm trên bản đồ"
                         >
-                          <strong>{routeResult.shortest_obj.stations_near_destination[0].name}</strong> ({routeResult.shortest_obj.stations_near_destination[0].code})
+                          <strong>{routeResult.shortest_obj.end_station.name}</strong> ({routeResult.shortest_obj.end_station.code})
                         </p>
                         <p style={{ margin: "0 0 0 10px", fontSize: "11px", color: "#666" }}>
-                          → Đi bộ {routeResult.shortest_obj.stations_near_destination[0].straight_distance}m
-                          {routeResult.shortest_obj.stations_near_destination[0].order && 
-                            ` • Order: ${routeResult.shortest_obj.stations_near_destination[0].order}`
+                          → Đi bộ {routeResult.shortest_obj.end_station.straight_distance}m
+                          {routeResult.shortest_obj.end_station.order && 
+                            ` • Order: ${routeResult.shortest_obj.end_station.order}`
                           }
                         </p>
                       </div>

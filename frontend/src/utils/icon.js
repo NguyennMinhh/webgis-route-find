@@ -1,6 +1,7 @@
 import L from "leaflet";
 import userIconURL from "../assets/icons/user.png";
 import BusStationIconURL from "../assets/icons/bus_station.png"
+import GoalDestinationURL from "../assets/icons/goal_destination.png"
 
 // Icon mặc định cho trạm bus
 export const busStationIcon = L.icon({
@@ -17,3 +18,10 @@ export const userIcon = L.icon({
   iconAnchor: [19, 38],
   popupAnchor: [0, -35],
 });
+
+export const goalLocation = L.icon({
+  iconUrl: GoalDestinationURL,
+  iconSize: [38, 38],
+  iconAnchor: [19, 38],
+  popupAnchor: [0, -35],
+})
