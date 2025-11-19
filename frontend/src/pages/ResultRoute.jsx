@@ -31,8 +31,8 @@ export default function ResultRoute() {
         .bindPopup("<strong>Điểm xuất phát</strong>");
     }
 
-    if (resultRoute.destination_location) {
-      const [desLon, desLat] = resultRoute.destination_location;
+    if (resultRoute.user_destination) {
+      const [desLon, desLat] = resultRoute.user_destination;
       L.marker([desLat, desLon], { icon: goalLocation })
         .addTo(map)
         .bindPopup("<strong>Điểm cần đến</strong>");
@@ -88,7 +88,7 @@ export default function ResultRoute() {
       );
       L.polyline(coords, {
         color: 'black',
-        weight: 3,
+        weight: 4,
         opacity: 0.8,
         dashArray: '5, 10'
       }).addTo(map).bindPopup(`Đi bộ: ${(resultRoute.start_route_geom.distance / 1000).toFixed(2)}km`);
@@ -101,7 +101,7 @@ export default function ResultRoute() {
       );
       L.polyline(coords, {
         color: 'black',
-        weight: 3,
+        weight: 4,
         opacity: 0.8,
         dashArray: '5, 10'
       }).addTo(map).bindPopup(`Đi bộ: ${(resultRoute.end_route_geom.distance / 1000).toFixed(2)}km`);
