@@ -47,7 +47,7 @@ def get_route_path(start_order, end_order, route_code):
 
     # FIX: Lấy routes theo đúng thứ tự, bỏ route cuối (vì không có đoạn đường tiếp theo)
     routes = []
-    for rs in route_stations[:-1]:  # Bỏ RouteStation cuối cùng
+    for rs in route_stations[:-1]:  # Bỏ RouteStation cuối cùng, do route order bị thừa còn station order thì không
         route = rs.route
         routes.append({
             'id': route.id,
@@ -57,9 +57,6 @@ def get_route_path(start_order, end_order, route_code):
             'direction': route.direction,
             'geom': route.geom.wkt if route.geom else None
         })
-
-    print(f"Stations: {[s['code'] for s in stations]}")
-    print(f"Routes: {[(r['order'], r['name']) for r in routes]}")
 
     return {
         'route_code': route_code,

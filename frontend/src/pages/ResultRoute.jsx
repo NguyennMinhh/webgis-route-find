@@ -1,10 +1,12 @@
 import { useLocation } from "react-router-dom";
-import { parseLine, parsePoint } from "../utils/geomParser";
+import { parseLine } from "../utils/geomParser";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect } from "react";
-import { userIcon, goalLocation } from "../utils/icon";
+import { userIcon, goalLocation, busStationIcon } from "../utils/icon";
 import { useRef } from "react";
+
+import { renderStations } from "../utils/mapHelpers";
 
 export default function ResultRoute() {
   const location = useLocation();
@@ -39,14 +41,7 @@ export default function ResultRoute() {
     }
 
     // Vẽ các trạm
-    resultRoute.stations.forEach((station) => {
-      const coords = parsePoint(station.geom);
-      if (coords) {
-        L.marker(coords).addTo(map).bindPopup(
-          `${station.name}<br>Order: ${station.order}`
-        );
-      }
-    });
+    renderStations(map, resultRoute.stations, busStationIcon);
 
     // Vẽ các route (không vẽ route của trạm cuối)
     resultRoute.routes.forEach((route) => {
