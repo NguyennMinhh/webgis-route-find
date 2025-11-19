@@ -129,7 +129,7 @@ export default function ResultRoute() {
       </div>
 
       {/* Bản đồ */}
-      <div id="result-map" style={{ width: "100%", height: "500px", borderRadius: "8px", marginBottom: "20px" }}></div>
+      <div id="result-map" style={{ width: "100%", height: "800px", borderRadius: "8px", marginBottom: "20px" }}></div>
 
       {/* Danh sách trạm */}
       <h3>Danh sách trạm sẽ đi qua:</h3>
