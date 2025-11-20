@@ -3,11 +3,14 @@ from maps.models import RouteStation, BusRoute
 
 def get_route_path(start_order, end_order, route_code):
     if start_order < end_order:
-        route_stations = RouteStation.objects.filter(
-            route__route_code=route_code,
-            order__gte=start_order,
-            order__lte=end_order
-        ).select_related('station', 'route').order_by('order')
+        # ✅ THÊM list() Ở ĐÂY!
+        route_stations = list(
+            RouteStation.objects.filter(
+                route__route_code=route_code,
+                order__gte=start_order,
+                order__lte=end_order
+            ).select_related('station', 'route').order_by('order')
+        )
 
     elif start_order > end_order:
         max_order = RouteStation.objects.filter(
@@ -45,18 +48,21 @@ def get_route_path(start_order, end_order, route_code):
             'geom': rs.station.geom.wkt
         })
 
-    # FIX: Lấy routes theo đúng thứ tự, bỏ route cuối (vì không có đoạn đường tiếp theo)
+    # FIX: Lấy routes theo đúng thứ tự, bỏ route cuối
     routes = []
-    for rs in route_stations[:-1]:  # Bỏ RouteStation cuối cùng, do route order bị thừa còn station order thì không
+    for rs in route_stations[:-1]:  # ✅ Giờ là list, không lỗi
         route = rs.route
         routes.append({
             'id': route.id,
-            'order': rs.order,  # Thêm order để debug
+            'order': rs.order,
             'name': route.name,
             'route_code': route.route_code,
             'direction': route.direction,
             'geom': route.geom.wkt if route.geom else None
         })
+
+    print(f"Stations: {[s['code'] for s in stations]}")
+    print(f"Routes: {[(r['order'], r['name']) for r in routes]}")
 
     return {
         'route_code': route_code,
